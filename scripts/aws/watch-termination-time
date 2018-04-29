@@ -1,0 +1,36 @@
+#! /bin/bash
+
+################################################################################################
+# watch-termination-time
+# Checks to see if the instance's termination-time has been set and exicutes shutdown prep if it is.
+# Cycle time is 5 seconds
+################################################################################################
+
+if [ -n $STARBOUND_USER ]; then
+    RCON_PASSWORD=$(grep 'rconServerPassword' /home/$STARBOUND_USER/starbound/storage/starbound_server.config | awk '{ print $3 }' | sed 's/\"//g' | sed 's/\,//g')
+fi
+
+if [ -z $STARBOUND_PORT ]; then
+    logger "STARBOUND_PORT is not set. RCON warnings will not be sent on termination!"
+fi
+
+if [ -z $RCON_PASSWORD ]; then
+    logger "RCON_PASSWORD is not set. RCON warnings will not be sent on termination!"
+fi
+
+while true
+    do
+        if [ -z $(curl -Is http://169.254.169.254/latest/meta-data/spot/termination-time | head -1 | grep 404 | cut -d \  -f 2) ]
+            then
+                logger "Running shutdown hook."
+                if [ -z $STARBOUND_PORT ] || [ -z $RCON_PASSWORD ]; then
+                    /mnt/efs/bin/rcon-cli --host localhost --port $STARBOUND_PORT --password $RCON_PASSWORD "say [AMAZON SHUTDOWN NOTICE] This server is being terminated. Server shutdown in 15 seconds!"
+    		            sleep 15
+                fi
+                /mnt/efs/scripts/backup/backup_starbound.sh 1
+                break
+            else
+                # Spot instance not yet marked for termination.
+                sleep 5
+        fi
+    done

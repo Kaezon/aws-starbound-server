@@ -1,0 +1,14 @@
+[Unit]
+Description=StarboundServer
+After=network.target
+[Service]
+WorkingDirectory=/home/steam/starbound/linux
+User=steam
+Group=steam
+Type=simple
+ExecStart=/home/steam/starbound/linux/starbound_server
+RestartSec=15
+Restart=always
+KillSignal=SIGINT
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=WatchTerminationTime
+After=network.target
+[Service]
+WorkingDirectory=/root
+User=root
+Group=root
+Type=simple
+ExecStart=/usr/bin/watch-termination-time
+RestartSec=15
+Restart=always
+KillSignal=SIGINT
+[Install]
+WantedBy=multi-user.target

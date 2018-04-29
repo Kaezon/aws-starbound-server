@@ -1,0 +1,2 @@
+#<timing>   	<user>		<command>
+0 0,12 * * *	root		/mnt/efs/scripts/backup/backup_starbound.sh
