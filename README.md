@@ -9,4 +9,4 @@ AWS services used by this project:
 
 ## Requirements
 - [rcon-cli](https://github.com/itzg/rcon-cli)
-- SteamCMD (optional)
+- [SteamCMD](https://developer.valvesoftware.com/wiki/SteamCMD) (optional)
