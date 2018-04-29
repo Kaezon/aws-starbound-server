@@ -3,7 +3,7 @@ AWS automation for Starbound servers
 
 This documentation will assume basic knowledge of AWS.
 
-AWS services used by this project:
+## AWS services used by this project
 - EC2
 - EFS
 
