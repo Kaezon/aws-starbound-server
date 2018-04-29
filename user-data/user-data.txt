@@ -1,0 +1,65 @@
+##############################################################################
+# Cloud-Init script for Starbound servers:
+# This script should be pasted into the User Data field for your EC2 instance.
+##############################################################################
+
+#cloud-config
+repo_update: true
+repo_upgrade: all
+
+packages:
+- amazon-efs-utils
+- zip
+- htop
+
+runcmd:
+- export EC2_AVAIL_ZONE=`curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone`
+- export AWS_DEFAULT_REGION="`echo \"$EC2_AVAIL_ZONE\" | sed -e 's:\([0-9][0-9]*\)[a-z]*\$:\\1:'`"
+- export INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+- export EIP_ALLOCATION_ID="<EIP allocation ID>"
+- export file_system_id_01=<EFS ID>
+- export efs_directory=/mnt/efs
+
+- echo "Associating EIP..."
+- aws ec2 associate-address --instance $INSTANCE_ID --allocation-id $EIP_ALLOCATION_ID
+
+- echo "Setting up swap..."
+- dd if=/dev/zero of=/var/swapfile1 bs=1G count=16
+- /sbin/mkswap /var/swapfile1
+- chmod 600 /var/swapfile1
+- /sbin/swapon /var/swapfile1
+
+- echo "Mounting EFS..."
+- groupadd efs_users
+- mkdir -p ${efs_directory}
+- echo "${file_system_id_01}:/ ${efs_directory} efs tls,_netdev" >> /etc/fstab
+- mount -a -t efs defaults
+- chown root:efs_users /mnt/efs
+- chmod 770 /mnt/efs
+
+- echo "Setting global environment variables..."
+- touch /etc/profile.d/A00-user-data.sh
+- chmod 755 /etc/profile.d/A00-user-data.sh
+
+- echo 'export BACKUP_PATH="/mnt/efs"' >> /etc/profile.d/A00-user-data.sh
+- echo 'export ARCHIVE_PATH="/mnt/efs/backups/starbound"' >> /etc/profile.d/A00-user-data.sh
+- echo 'export STARBOUND_USER="steam"' >> /etc/profile.d/A00-user-data.sh
+- echo 'export STARBOUND_PORT=<RCON Port>' >> /etc/profile.d/A00-user-data.sh
+- echo 'export STARBOUND_PATH="/home/steam/starbound"' >> /etc/profile.d/A00-user-data.sh
+
+- source /etc/profile
+
+- echo "Adding AWS hooks..."
+- cp /mnt/efs/scripts/aws/watch-termination-time /usr/bin/
+- cp /mnt/efs/scripts/unit/aws-shutdown-hook.service /etc/systemd/system/
+
+- echo "Setting up Starbound..."
+- useradd $STARBOUND_USER
+- usermod -a -G efs_users $STARBOUND_USER
+- rsync -azr "$BACKUP_PATH/starbound" "/home/$STARBOUND_USER"
+- cp /mnt/efs/scripts/unit/starbound-server.service /etc/systemd/system/
+- cp /mnt/efs/cron/starbound/cron_starbound /etc/cron.d
+
+- systemctl daemon-reload
+- systemctl start aws-shutdown-hook
+- systemctl start starbound-server
