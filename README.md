@@ -29,3 +29,17 @@ The rest should happen automatically once you start the server.
 
 Once the server finishes initializing, you should go and edit the server config at `/home/$STARBOUND_USER/starbound/storage/starbound_server.conf`
 and restart the starbound-server service.
+
+## EFS Directory Structure
+
+The following is how I structured my EFS:
+> backups/
+> backups/starbound/
+> bin/
+> cron/
+> cron/starbound/
+> scripts/
+> scripts/aws/
+> scripts/backup/
+> scripts/unit/
+> starbound/
