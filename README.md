@@ -33,13 +33,15 @@ and restart the starbound-server service.
 ## EFS Directory Structure
 
 The following is how I structured my EFS:
-> backups/
-> backups/starbound/
-> bin/
-> cron/
-> cron/starbound/
-> scripts/
-> scripts/aws/
-> scripts/backup/
-> scripts/unit/
-> starbound/
+```
+backups/
+backups/starbound/
+bin/
+cron/
+cron/starbound/
+scripts/
+scripts/aws/
+scripts/backup/
+scripts/unit/
+starbound/
+```
